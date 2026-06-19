@@ -5,36 +5,83 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Posty — Latest Posts</title>
   <style>
-    body { font-family: Arial, Helvetica, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; }
-    h1 { margin-bottom: 0.2em }
-    .post { border-bottom: 1px solid #eee; padding: 12px 0 }
-    .meta { color: #666; font-size: 0.9em }
+    :root{
+      --bg1:#0e0f12;
+      --bg2:#121218;
+      --muted:rgba(255,255,255,0.6);
+      --accent:#e85ec6;
+    }
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+      background: radial-gradient(1200px 800px at 10% 20%, rgba(120,80,160,0.06), transparent),
+                  radial-gradient(800px 600px at 90% 80%, rgba(200,90,180,0.04), transparent),
+                  linear-gradient(180deg,var(--bg1),var(--bg2));
+      color:#ddd; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:16px 40px}
+    .brand{color:var(--accent);font-weight:700}
+    .nav-links a{color:rgba(255,255,255,0.6);margin-left:20px;text-decoration:none}
+
+    .container{max-width:980px;margin:40px auto;padding:0 24px}
+    .hero{padding:56px 0}
+    h1.title{color:var(--accent);font-size:48px;margin:0 0 12px}
+    p.lead{color:rgba(255,255,255,0.65);max-width:600px}
+    .btn{display:inline-block;margin-top:18px;padding:8px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:#fff;border-radius:6px;text-decoration:none}
+
+    h2.section{margin-top:36px;color:#fff}
+    .posts-grid{display:flex;gap:18px;margin-top:16px}
+    .card{flex:0 0 280px;height:96px;border-radius:10px;position:relative;overflow:hidden;display:flex;align-items:flex-end;padding:12px;background:linear-gradient(135deg,rgba(232,94,198,0.12),rgba(80,60,160,0.06));box-shadow:0 6px 18px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.03)}
+    .card .meta{font-size:13px;color:rgba(255,255,255,0.75)}
+    .card .title{font-weight:600;font-size:14px;margin-bottom:6px}
+
+    footer{color:rgba(255,255,255,0.45);text-align:center;padding:48px 0 24px;font-size:13px}
+
+    @media(max-width:880px){.posts-grid{flex-wrap:wrap}.card{flex:1 1 45%}}
   </style>
 </head>
 <body>
-  <h1>Posty — Latest Posts</h1>
-  <div id="posts">Loading posts…</div>
+  <div class="nav">
+    <div class="brand">Posty</div>
+    <div class="nav-links"><a href="#">Home</a><a href="#">New</a><a href="#">Repo</a></div>
+  </div>
+
+  <main class="container">
+    <section class="hero">
+      <h1 class="title">Posty</h1>
+      <p class="lead">A tiny, modern, playful Markdown microblog. Write fast. Render pretty. No database—just files.</p>
+      <a class="btn" href="#">Create a Post</a>
+    </section>
+
+    <section>
+      <h2 class="section">Latest Posts</h2>
+      <div id="posts" class="posts-grid">Loading posts…</div>
+    </section>
+  </main>
+
+  <footer>Built with Markdown · Posty</footer>
 
   <script>
-    async function load() {
-      try {
+    async function load(){
+      try{
         const res = await fetch('/api/posts');
         const posts = await res.json();
         const container = document.getElementById('posts');
-        if (!posts.length) { container.textContent = 'No posts found.'; return }
         container.innerHTML = '';
-        posts.forEach(p => {
-          const el = document.createElement('div'); el.className = 'post';
-          const title = document.createElement('div');
-          title.innerHTML = `<a href="${p.url}">${p.title}</a>`;
-          const meta = document.createElement('div'); meta.className = 'meta';
-          meta.textContent = `${p.author || 'Unknown'} — ${p.date || p.filename}`;
-          el.appendChild(title); el.appendChild(meta);
-          container.appendChild(el);
+        if(!posts || posts.length===0){ container.textContent='No posts yet.'; return }
+        posts.forEach(p=>{
+          const card = document.createElement('a');
+          card.className='card';
+          card.href = p.url || '#';
+          const inner = document.createElement('div');
+          inner.style.width='100%';
+          const title = document.createElement('div'); title.className='title'; title.textContent = p.title || p.filename;
+          const meta = document.createElement('div'); meta.className='meta'; meta.textContent = (p.author? p.author + ' — ' : '') + (p.date || p.filename);
+          inner.appendChild(title); inner.appendChild(meta);
+          card.appendChild(inner);
+          container.appendChild(card);
         })
-      } catch (e) {
-        document.getElementById('posts').textContent = 'Failed to load posts: ' + e.message;
-      }
+      }catch(e){ document.getElementById('posts').textContent = 'Failed to load posts: '+e.message }
     }
     load();
   </script>
